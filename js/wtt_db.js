@@ -69,8 +69,7 @@ class WTTDB {
     return fields;
   }
 
-  // database information -- load tables
-  async initDB(apiKey, base, callback) {
+  init(apiKey, base) {
     var Airtable = require('airtable');
     Airtable.configure({
       endpointUrl: 'https://api.airtable.com',
@@ -78,41 +77,46 @@ class WTTDB {
     });
     this.base = Airtable.base(base);  // WTT2018
     this.db = {};
-    var self = this
+  }
+
+  // database information -- load tables
+  async initDB(apiKey, base, callback) {
+    this.init(apiKey, base)
     let sort = [{field: "sched_date", direction: "asc"}]
-    await this.loadTable(self.base, 'team_logo')
-    await this.loadTable(self.base, 'player_pictures')
-    await this.loadTable(self.base, 'matches', {sort: sort})
-    await this.loadTable(self.base, 'teams')
-    await this.loadTable(self.base, 'players')
-    await this.loadTable(self.base, 'venues')
+    await this.loadTable('team_logo')
+    await this.loadTable('player_pictures')
+    await this.loadTable('matches', {sort: sort})
+    await this.loadTable('teams')
+    await this.loadTable('players')
+    await this.loadTable('venues')
     console.log(">>> DB Loaded", this.db);
     this.status.loaded = true
     callback();
   }
 
-    loadTable(base, table, options = {}) {
-      let db = this.db
-      return new Promise(function(resolve, reject) {
-        var recordArray = {}
-        options = Object.assign({maxRecords: 99}, options)
-        base(table).select(options).eachPage(function page(records, fetchNextPage) {
-          records.forEach(function(record) {
-            recordArray[record.id] = record;
-          });
+  loadTable(table, options = {}) {
+    let db = this.db
+    let base = this.base
+    return new Promise(function(resolve, reject) {
+      var recordArray = {}
+      options = Object.assign({maxRecords: 99}, options)
+      base(table).select(options).eachPage(function page(records, fetchNextPage) {
+        records.forEach(function(record) {
+          recordArray[record.id] = record;
+        });
 
-          // To fetch the next page of records, call `fetchNextPage`.
-          // If there are more records, `page` will get called again.
-          // If there are no more records, `done` will get called.
-          fetchNextPage();
-        }, function done(err) {
-          if (err)
-            console.error(err);
+        // To fetch the next page of records, call `fetchNextPage`.
+        // If there are more records, `page` will get called again.
+        // If there are no more records, `done` will get called.
+        fetchNextPage();
+      }, function done(err) {
+        if (err)
+          console.error(err);
 
-          db[table] = recordArray;
-          return resolve();
-        })
+        db[table] = recordArray;
+        return resolve();
       })
+    })
   }
 
   insert(table, record) {
