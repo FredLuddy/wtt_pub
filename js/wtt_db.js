@@ -81,6 +81,7 @@ class WTTDB {
     var self = this
     let sort = [{field: "sched_date", direction: "asc"}]
     await this.loadTable(self.base, 'team_logo')
+    await this.loadTable(self.base, 'player_pictures')
     await this.loadTable(self.base, 'matches', {sort: sort})
     await this.loadTable(self.base, 'teams')
     await this.loadTable(self.base, 'players')
