@@ -32,13 +32,13 @@ class WTTDB {
     this.updateFields(table, id, x)
   }
 
-  async getRecordsEx(table) {
+  async getRecordsEx(table, options = {}) {
     let t = this.db[table]
     if (!t) {
-      t = await this.loadTable(table)
+      t = await this.loadTable(table, options)
       t = this.db[table]
     }
-    
+
     var a = []
     Object.keys(t).forEach(function(key) {
       var record = t[key]
